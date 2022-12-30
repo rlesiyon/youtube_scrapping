@@ -1,0 +1,12 @@
+# ignore all the csv file
+
+*.csv
+*.json
+
+# ignore dotenv file
+.env
+
+
+# ignore the cpython files
+
+*/__pycache__*

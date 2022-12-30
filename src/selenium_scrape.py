@@ -6,6 +6,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from pytube import extract
+
 import time
 import pandas as pd
 import json
@@ -20,25 +22,15 @@ def load_youtube_data_with(driver):
     )
     youtube_data = driver.find_elements(
         By.XPATH, '//*[@id="contents"]/ytd-video-renderer')
-    print(len(youtube_data))
     youtube_data_list = []
-    
+    print(len(youtube_data))
     for video in youtube_data:
         try:
-            title = video.find_element(
-                By.XPATH, './/*[@id="video-title"]/yt-formatted-string')
-            views = video.find_element(
-                By.XPATH, './/*[@id="metadata-line"]/span')
-            description = video.find_element(By.XPATH, './/*[@id="description-text"]')
-            #time_status = video.find_element(
-            #    By.XPATH, './/*[@id = "overlays"]/ytd-thumbnail-overlay-time-status-renderer')
-            channel_name = video.find_element(
-                By.XPATH, './/*[@id = "channel-name"]')  
+            video_url = video.find_element(
+                By.XPATH, './/*[@id = "video-title"]').get_attribute('href')
+
             youtube_data_list.append({
-                'title': title.text,
-                'views': views.text,
-                'description': description.text,
-                'channel_name': channel_name.text
+                'video id': extract.video_id(video_url)
             })  
 
         except Exception as e:
@@ -62,6 +54,7 @@ def scroller(driver, time_sleep):
 def max_trials(max_trials, time_sleep, driver) -> None:
     trials = 0
     while trials < max_trials:
+        print(trials)
         time.sleep(20)
         print(len(driver.find_elements(
             By.XPATH, '//*[@id="contents"]/ytd-video-renderer')))
@@ -102,26 +95,31 @@ def json_data(file_name):
     file_contents = f.read()
   return json.loads(file_contents)
 
-def setup_selenium_scroller(root_url, specific_url, cookie, trials, time_sleep):
+def setup_selenium_scroller(root_url, specific_url, cookie, trials, time_sleep, cookie_needed = False):
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-    add_cookie_wrapper(root_url, cookie, driver)
+
+    if cookie_needed:
+        add_cookie_wrapper(root_url, cookie, driver)
+
     driver.get(url=specific_url)
     max_trials(trials, time_sleep, driver)
     return driver
 
 if __name__ == "__main__":
-    TIME_SLEEP = 5
-    MAX_TRIALS = 3
-    URL = "https://www.youtube.com/feed/history"
+    TIME_SLEEP = 3
+    MAX_TRIALS = 10
+
+    URL = "https://www.youtube.com/results?search_query=kenya"
     root_url = 'https://www.youtube.com'
+
     cookie = json_data(HEADERS_PATH_FILE)['cookie']
 
     driver = setup_selenium_scroller(root_url,
                             URL, cookie, MAX_TRIALS, TIME_SLEEP)
-
+                            
     youtube_data_list = load_youtube_data_with(driver)
-    youtube_data = pd.DataFrame(youtube_data_list).drop_duplicates()
-    print(youtube_data.to_markdown())
+    pd.DataFrame(youtube_data_list).drop_duplicates().to_csv('../data/youtube_search_id.csv')
+    
     
 
 

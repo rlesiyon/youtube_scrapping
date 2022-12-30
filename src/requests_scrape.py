@@ -11,7 +11,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from selenium_scrape import setup_selenium_scroller, json_data
 
-URL = "https://www.youtube.com/feed/history"
 
 def process_soup_data(data):
     scripted_data = data['contents']['twoColumnBrowseResultsRenderer']['tabs']
@@ -75,10 +74,10 @@ if __name__ == '__main__':
     # print(pd.DataFrame(watch_history).drop_duplicates().to_markdown())
     TIME_SLEEP = 10
     MAX_TRIALS = 3
-    URL = "https://www.youtube.com/feed/history"
+    URL = "https://www.youtube.com/results?search_query=kenya"
     root_url = 'https://www.youtube.com'
     cookie = HEADERS['cookie']
 
     driver = setup_selenium_scroller(root_url,
                             URL, cookie, MAX_TRIALS, TIME_SLEEP)                        
-    pd.DataFrame(process_soup_data(parse_html_lxml(driver.page_source))).drop_duplicates().to_csv('feed_history_videoId.csv')
+    pd.DataFrame(process_soup_data(parse_html_lxml(driver.page_source))).drop_duplicates().to_csv('youtube_search_kenya.csv')

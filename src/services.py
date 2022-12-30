@@ -9,8 +9,7 @@ import pprint
 
 CLIENT_FILE = '../credentials_api_youtube.json'
 
-class YouTubeApi:
-
+class BaseYouTubeModel:
   def __init__(self):
 
     self.api_name = 'youtube'
@@ -22,7 +21,16 @@ class YouTubeApi:
   def build(self):
     return build(self.api_name, self.version, credentials=self.creds)
 
+class YouTubeDataApi(BaseYouTubeModel):
+
+  def __init__(self):
+    super().__init__()
+
   def get_video_with_id(self, videoId):
+    '''
+    This returns a youtube videos that matches that specific video id.
+    '''
+
     return self.service.videos().list(
         part="snippet,contentDetails,statistics", id=videoId).execute()
 
@@ -37,21 +45,52 @@ class YouTubeApi:
         'description': video_response['snippet']['description'], 
         'published_at': video_response['snippet']['publishedAt'],
         'title': video_response['snippet']['title'], 
-        'views_count': video_response['statistics']['viewCount'],
-        'comment_count': video_response['statistics']['commentCount'] if 'commentCount' in video_response['statistics'].keys() else 0,
-        'likes_count': video_response['statistics']['likeCount'] if 'likeCount' in video_response['statistics'].keys() else 0
+        'views': video_response['statistics']['viewCount'],
+        'comment': video_response['statistics']['commentCount'] if 'commentCount' in video_response['statistics'].keys() else 0,
+        'likes': video_response['statistics']['likeCount'] if 'likeCount' in video_response['statistics'].keys() else 0
     }
     return video_information
+
+
+class VideoCategory(BaseYouTubeModel):
+
+  def __init__(self):
+    super().__init__()
+
+  def get_categories(self):
+    '''
+    Get the Youtube data categories according to youtube api.
+    '''  
+    response = self.service.videoCategories().list(
+        part="snippet",
+        regionCode="US").execute()
+    return self._get_categories(response.get('items', None))
+
+  def _get_categories(self, category_response):
+
+    '''
+    Parse through the dictionary and return the dictionary of key: id, value: title
+    '''
+    categories = {}
+    if category_response == None:
+      return categories
+
+    for category in category_response:
+      categories[category.get('id')] = category.get('snippet').get('title')
+    return categories
 
 @dataclass
 class YouTubeData:
   id: str
   channel_title: str
+  category_id: str
+  channel_id: str
   description: str
   published_at: str
   title: str
   views: str
   likes: str
+  comment: str
 
 def authenicate(SCOPES, CLIENT_FILE):
   creds = None
@@ -68,9 +107,11 @@ def authenicate(SCOPES, CLIENT_FILE):
       with open('../token.json', 'w') as token:
           token.write(creds.to_json())
   return creds
-  
+
 if __name__ == '__main__':
-  youtube = YouTubeApi()
+  youtube = YouTubeDataApi()
   response = youtube.get_video_with_id('xYs64fU6iEI')
   video_info = youtube.get_video_data(response)
   print(YouTubeData(**video_info))
+  
+  print(VideoCategory().get_categories())
