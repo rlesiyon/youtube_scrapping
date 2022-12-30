@@ -5,17 +5,20 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 
 import os
 from dataclasses import dataclass
-import pprint
+from enum import Enum
 
-CLIENT_FILE = '../credentials_api_youtube.json'
+class AuthsCredits(Enum):
+  CLIENT_FILE = '/Users/lesiyonr/Desktop/tutorials/youtube_scrapping/auths/credentials_api_youtube.json'
+  TOKEN_PATH = '/Users/lesiyonr/Desktop/tutorials/youtube_scrapping/auths/token.json'
 
 class BaseYouTubeModel:
-  def __init__(self):
+
+  def __init__(self, TOKEN_PATH, CLIENT_FILE):
 
     self.api_name = 'youtube'
     self.version = 'v3'
     self.SCOPES = ["https://www.googleapis.com/auth/youtube"]
-    self.creds = authenicate(self.SCOPES, CLIENT_FILE)
+    self.creds = authenicate(self.SCOPES, CLIENT_FILE, TOKEN_PATH)
     self.service = self.build()
 
   def build(self):
@@ -23,8 +26,8 @@ class BaseYouTubeModel:
 
 class YouTubeDataApi(BaseYouTubeModel):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, TOKEN_PATH, CLIENT_FILE):
+    super().__init__(TOKEN_PATH, CLIENT_FILE)
 
   def get_video_with_id(self, videoId):
     '''
@@ -53,9 +56,9 @@ class YouTubeDataApi(BaseYouTubeModel):
 
 
 class VideoCategory(BaseYouTubeModel):
-
-  def __init__(self):
-    super().__init__()
+  
+  def __init__(self, TOKEN_PATH, CLIENT_FILE):
+    super().__init__(TOKEN_PATH, CLIENT_FILE)
 
   def get_categories(self):
     '''
@@ -76,7 +79,7 @@ class VideoCategory(BaseYouTubeModel):
       return categories
 
     for category in category_response:
-      categories[category.get('id')] = category.get('snippet').get('title')
+      categories[int(category.get('id'))] = category.get('snippet').get('title')
     return categories
 
 @dataclass
@@ -92,26 +95,28 @@ class YouTubeData:
   likes: str
   comment: str
 
-def authenicate(SCOPES, CLIENT_FILE):
+
+def authenicate(SCOPES, CLIENT_FILE, TOKEN_PATH):
+
   creds = None
-  if os.path.exists('../token.json'):
-      creds = Credentials.from_authorized_user_file('../token.json', SCOPES)
+  if os.path.exists(TOKEN_PATH):
+      creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
 
   if not creds or not creds.valid:
+
       if creds and creds.expired and creds.refresh_token:
           creds.refresh(Request())
       else:
           flow = InstalledAppFlow.from_client_secrets_file(
               CLIENT_FILE, SCOPES)
           creds = flow.run_local_server(port=0)
-      with open('../token.json', 'w') as token:
+
+      with open(TOKEN_PATH, 'w') as token:
           token.write(creds.to_json())
   return creds
 
 if __name__ == '__main__':
-  youtube = YouTubeDataApi()
+  youtube = YouTubeDataApi(AuthsCredits.TOKEN_PATH.value, AuthsCredits.CLIENT_FILE.value)
   response = youtube.get_video_with_id('xYs64fU6iEI')
   video_info = youtube.get_video_data(response)
-  print(YouTubeData(**video_info))
-  
-  print(VideoCategory().get_categories())
+  print(VideoCategory(AuthsCredits.TOKEN_PATH.value, AuthsCredits.CLIENT_FILE.value).get_categories())

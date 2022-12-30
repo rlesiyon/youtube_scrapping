@@ -10,3 +10,6 @@
 # ignore the cpython files
 
 */__pycache__*
+auths/*
+*.png
+src/__pycache__/services.cpython-39.pyc

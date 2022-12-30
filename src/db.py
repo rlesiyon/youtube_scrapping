@@ -1,8 +1,8 @@
 import pandas as pd
 
-from services import YouTubeApi, YouTubeData
+from services import YouTubeDataApi
 
-youtube = YouTubeApi()
+youtube = YouTubeDataApi()
 
 def loading_data(filename, saveto):
   history_data = pd.read_csv(filename)
