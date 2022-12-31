@@ -1,15 +1,14 @@
+import os
+import pprint
+from dataclasses import dataclass
+
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
 
-import os
-from dataclasses import dataclass
-from enum import Enum
+from selenium_scrape import json_data
 
-class AuthsCredits(Enum):
-  CLIENT_FILE = '/Users/lesiyonr/Desktop/tutorials/youtube_scrapping/auths/credentials_api_youtube.json'
-  TOKEN_PATH = '/Users/lesiyonr/Desktop/tutorials/youtube_scrapping/auths/token.json'
 
 class BaseYouTubeModel:
 
@@ -40,6 +39,7 @@ class YouTubeDataApi(BaseYouTubeModel):
   @staticmethod
   def get_video_data(video_response):
     video_response = video_response['items'][0]
+    # return VideoData(**video_response)
     video_information = {
         'id': video_response['id'],
         'category_id': video_response['snippet']['categoryId'],
@@ -81,7 +81,7 @@ class VideoCategory(BaseYouTubeModel):
     for category in category_response:
       categories[int(category.get('id'))] = category.get('snippet').get('title')
     return categories
-
+    
 @dataclass
 class YouTubeData:
   id: str
@@ -95,6 +95,26 @@ class YouTubeData:
   likes: str
   comment: str
 
+@dataclass
+class VideoSnippet:
+  categoryId: str
+  channelTitle: str
+  channelId: str
+  description: str
+  publishedAt: str
+  title: str
+
+@dataclass
+class VideoStatistics:
+  viewCount: str
+  likeCount: str
+  commentCount: str # make options
+
+@dataclass
+class VideoData:
+  id: str
+  snippet: VideoSnippet
+  statistics: VideoStatistics
 
 def authenicate(SCOPES, CLIENT_FILE, TOKEN_PATH):
 
@@ -114,9 +134,3 @@ def authenicate(SCOPES, CLIENT_FILE, TOKEN_PATH):
       with open(TOKEN_PATH, 'w') as token:
           token.write(creds.to_json())
   return creds
-
-if __name__ == '__main__':
-  youtube = YouTubeDataApi(AuthsCredits.TOKEN_PATH.value, AuthsCredits.CLIENT_FILE.value)
-  response = youtube.get_video_with_id('xYs64fU6iEI')
-  video_info = youtube.get_video_data(response)
-  print(VideoCategory(AuthsCredits.TOKEN_PATH.value, AuthsCredits.CLIENT_FILE.value).get_categories())

@@ -1,16 +1,14 @@
+import json
+import time
+
+import pandas as pd
+from pytube import extract
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
-from pytube import extract
-
-import time
-import pandas as pd
-import json
+from webdriver_manager.chrome import ChromeDriverManager
 
 HEADERS_PATH_FILE = '../headers.json'
 
@@ -104,21 +102,6 @@ def setup_selenium_scroller(root_url, specific_url, cookie, trials, time_sleep, 
     driver.get(url=specific_url)
     max_trials(trials, time_sleep, driver)
     return driver
-
-if __name__ == "__main__":
-    TIME_SLEEP = 3
-    MAX_TRIALS = 10
-
-    URL = "https://www.youtube.com/results?search_query=kenya"
-    root_url = 'https://www.youtube.com'
-
-    cookie = json_data(HEADERS_PATH_FILE)['cookie']
-
-    driver = setup_selenium_scroller(root_url,
-                            URL, cookie, MAX_TRIALS, TIME_SLEEP)
-                            
-    youtube_data_list = load_youtube_data_with(driver)
-    pd.DataFrame(youtube_data_list).drop_duplicates().to_csv('../data/youtube_search_id.csv')
     
     
 

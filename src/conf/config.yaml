@@ -1,0 +1,16 @@
+  paths:
+    auths: ${hydra:runtime.cwd}/../auths
+    log: ${hydra:runtime.cwd}/log
+    data: ${hydra:runtime.cwd}/data
+  files: 
+    client: credentials_api_youtube.json
+    token: token.json
+    headers: headers.json
+  params: 
+    root_url: https://www.youtube.com/
+    query: results?search_query=kenya
+    time_sleep: 10
+    max_trials: 5
+  data_files:
+    video_id: youtube_video_id.csv
+    video_info: youtube_video_info.csv    

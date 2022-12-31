@@ -1,15 +1,15 @@
-import requests
-from urllib.request import urlopen
-from bs4 import BeautifulSoup as bs
-import pandas as pd
-import re
 import json
+import re
+from urllib.request import urlopen
 
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
-from selenium_scrape import setup_selenium_scroller, json_data
+from selenium_scrape import json_data, setup_selenium_scroller
 
 
 def process_soup_data(data):
@@ -64,20 +64,3 @@ def parse_html_lxml(page):
     json_text = re.search(
         'var ytInitialData = (.+)[,;]{1}', str(script)).group(1)
     return json.loads(json_text)
-
-
-if __name__ == '__main__':
-
-    print('Starting')
-    HEADERS = json_data('../headers.json')
-    # watch_history = process_soup_data(url_requests(URL, headers=HEADERS))
-    # print(pd.DataFrame(watch_history).drop_duplicates().to_markdown())
-    TIME_SLEEP = 10
-    MAX_TRIALS = 3
-    URL = "https://www.youtube.com/results?search_query=kenya"
-    root_url = 'https://www.youtube.com'
-    cookie = HEADERS['cookie']
-
-    driver = setup_selenium_scroller(root_url,
-                            URL, cookie, MAX_TRIALS, TIME_SLEEP)                        
-    pd.DataFrame(process_soup_data(parse_html_lxml(driver.page_source))).drop_duplicates().to_csv('youtube_search_kenya.csv')

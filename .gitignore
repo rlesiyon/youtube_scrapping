@@ -1,15 +1,16 @@
-# ignore all the csv file
+# ignore all the * files
 
 *.csv
 *.json
+*.png
+**/__pycache__/
 
 # ignore dotenv file
 .env
 
+# ignoring folders
 
-# ignore the cpython files
-
-*/__pycache__*
 auths/*
-*.png
-src/__pycache__/services.cpython-39.pyc
+data/*
+src/__pycache__/*
+src/outputs
