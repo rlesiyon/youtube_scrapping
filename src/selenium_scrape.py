@@ -1,7 +1,8 @@
 import json
+import os
 import time
 
-import pandas as pd
+import polars as pl
 from pytube import extract
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -12,7 +13,17 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 HEADERS_PATH_FILE = '../headers.json'
 
-def load_youtube_data_with(driver):
+def is_video_scraped(videoid, filename):
+    '''
+    The use of polar lazy query to effectively check if a video id is already stored in the csv file.
+    '''
+    q = (
+        pl.scan_csv(filename)
+        .filter(pl.col('videoId') == videoid)
+    )
+    return q.collect().is_empty()
+
+def load_youtube_data_with(driver, filename):
 
     element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located(
@@ -20,17 +31,17 @@ def load_youtube_data_with(driver):
     )
     youtube_data = driver.find_elements(
         By.XPATH, '//*[@id="contents"]/ytd-video-renderer')
+
     youtube_data_list = []
-    print(len(youtube_data))
     for video in youtube_data:
         try:
-            video_url = video.find_element(
-                By.XPATH, './/*[@id = "video-title"]').get_attribute('href')
-
-            youtube_data_list.append({
-                'video id': extract.video_id(video_url)
-            })  
-
+            element = video.find_element(
+                By.XPATH, './/*[@id = "video-title"]')
+            video_id = extract.video_id(element.get_attribute('href'))
+            if is_video_scraped(video_id, filename):
+                youtube_data_list.append({
+                    'videoId': video_id
+                })
         except Exception as e:
             pass
 

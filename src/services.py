@@ -7,9 +7,6 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-from selenium_scrape import json_data
-
-
 class BaseYouTubeModel:
 
   def __init__(self, TOKEN_PATH, CLIENT_FILE):

@@ -1,4 +1,3 @@
-import os
 import hydra
 from hydra.core.config_store import ConfigStore
 from omegaconf import DictConfig, OmegaConf
@@ -9,7 +8,6 @@ import pandas as pd
 from conf.config import AuthsConfig
 from db import loading_data
 from selenium_scrape import json_data, load_youtube_data_with, setup_selenium_scroller
-from services import VideoCategory, YouTubeDataApi
 
 cs = ConfigStore.instance()
 cs.store(name="auths_config",node=AuthsConfig)
@@ -29,11 +27,22 @@ def main(cfg: AuthsConfig):
   driver = setup_selenium_scroller(cfg.params.root_url,
                                    url , cookie, cfg.params.max_trials, cfg.params.time_sleep)
   
-  youtube_data_list = load_youtube_data_with(driver)
-  pd.DataFrame(youtube_data_list).drop_duplicates().to_csv(video_id_file)
+  youtube_data_list = load_youtube_data_with(driver, video_id_file)
 
-  loading_data(video_id_file, video_info_file,
-               token_path, client_path)
+  if youtube_data_list:
+    youtube_data = pd.DataFrame(
+      youtube_data_list).drop_duplicates().to_dict()
+
+    youtube_data['videoId'].update(
+      pd.read_csv(
+        video_id_file, header=0, names=['videoId']
+      )['videoId'].to_dict())
+
+    print(youtube_data)
+
+    pd.DataFrame(youtube_data).to_csv(video_id_file)  
+    loading_data(video_id_file, video_info_file,
+                  token_path, client_path)
 
 if __name__=='__main__':
   main()
