@@ -10,12 +10,10 @@ This project implements a method for scrapping youtube search result using selen
 
 - hydra: abstract the project configuration like json file containing credentials, website headers.
 
-- sqlite: maintain a youtube search database for update purpose of the data.
-
 ### Data Science Technologies used:
 - lemmatizaton
 - Text representation: BOW, Term Frequency and Inverse Document Frequency(TFiDF)
-- LDA
+
 
 ### Application: 
 
