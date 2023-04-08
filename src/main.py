@@ -1,6 +1,5 @@
 import hydra
 from hydra.core.config_store import ConfigStore
-from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
 
 import pandas as pd
@@ -15,34 +14,29 @@ cs.store(name="auths_config",node=AuthsConfig)
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: AuthsConfig):
   
-  headers_path = Path(f'{cfg.paths.auths}/{cfg.files.headers}')
+  # headers_path = Path(f'{cfg.paths.auths}/{cfg.files.headers}')
   token_path = Path(f'{cfg.paths.auths}/{cfg.files.token}')
   client_path = Path(f'{cfg.paths.auths}/{cfg.files.client}')
   video_id_file = Path(f'{cfg.paths.data}/{cfg.data_files.video_id}')
   video_info_file = Path(f'{cfg.paths.data}/{cfg.data_files.video_info}')
 
   url = f'{cfg.params.root_url}{cfg.params.query}'
-  cookie = json_data(headers_path)['cookie']
+  country = cfg.params.query.split("=")[-1]
+  print(f"Search youtube for the {country}")
 
   driver = setup_selenium_scroller(cfg.params.root_url,
-                                   url , cookie, cfg.params.max_trials, cfg.params.time_sleep)
+                                   url , "", cfg.params.max_trials, cfg.params.time_sleep)
   
-  youtube_data_list = load_youtube_data_with(driver, video_id_file)
+  youtube_data_list = load_youtube_data_with(driver, country)
 
   if youtube_data_list:
     youtube_data = pd.DataFrame(
       youtube_data_list).drop_duplicates().to_dict()
-
-    youtube_data['videoId'].update(
-      pd.read_csv(
-        video_id_file, header=0, names=['videoId']
-      )['videoId'].to_dict())
-
-    print(youtube_data)
-
+    
     pd.DataFrame(youtube_data).to_csv(video_id_file)  
-    loading_data(video_id_file, video_info_file,
-                  token_path, client_path)
 
+  loading_data(video_id_file, video_info_file,
+                token_path, client_path)
+  
 if __name__=='__main__':
   main()

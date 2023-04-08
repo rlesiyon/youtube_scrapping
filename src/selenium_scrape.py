@@ -13,39 +13,31 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 HEADERS_PATH_FILE = '../headers.json'
 
-def is_video_scraped(videoid, filename):
+
+def is_video_scraped(video_id, filename):
     '''
     The use of polar lazy query to effectively check if a video id is already stored in the csv file.
     '''
-    q = (
-        pl.scan_csv(filename)
-        .filter(pl.col('videoId') == videoid)
-    )
-    return q.collect().is_empty()
+    query = pl.scan_csv(filename).filter(pl.col('videoId') == video_id)
+    return query.collect().is_empty()
 
-def load_youtube_data_with(driver, filename):
+def load_youtube_data_with(driver, country):
 
-    element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located(
-            (By.XPATH, '//*[@id="contents"]/ytd-video-renderer'))
-    )
     youtube_data = driver.find_elements(
         By.XPATH, '//*[@id="contents"]/ytd-video-renderer')
-
     youtube_data_list = []
     for video in youtube_data:
         try:
-            element = video.find_element(
-                By.XPATH, './/*[@id = "video-title"]')
-            video_id = extract.video_id(element.get_attribute('href'))
-            if is_video_scraped(video_id, filename):
-                youtube_data_list.append({
-                    'videoId': video_id
+            video_id = extract.video_id(video.find_element(
+                By.ID, "video-title").get_attribute('href'))
+            youtube_data_list.append({
+                    'videoId': video_id,
+                    'country': country
                 })
-        except Exception as e:
+        except:
             pass
 
-    return youtube_data_list
+    return youtube_data_list if youtube_data_list else None
 
 def scroller(driver, time_sleep):
 

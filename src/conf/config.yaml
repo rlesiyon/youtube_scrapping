@@ -9,8 +9,8 @@
   params: 
     root_url: https://www.youtube.com/
     query: results?search_query=kenya
-    time_sleep: 10
-    max_trials: 20
+    time_sleep: 5
+    max_trials: 2
   data_files:
     video_id: youtube_videoid.csv
     video_info: youtube_videoinfo.csv    
